@@ -1,0 +1,290 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  font-family: Arial;
+}
+
+#app {
+  height: 100%;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 600px;
+  min-height: 400px;
+  margin: 0 auto;
+}
+
+.layout__cell_for_header {
+  height: 60px;
+}
+
+.layout__cell_for_main {
+  flex-grow: 1;
+  position: relative;
+}
+
+.layout__cell_for_pager {
+  height: 50px;
+  margin-bottom: 30px;
+}
+
+.header {
+  display: flex;
+  height: 60px;
+  line-height: 60px;
+  padding: 0 12px;
+}
+
+.header__cell_for_weekday {
+  flex-grow: 1;
+}
+
+.header__cell_for_userpic {
+  width: 50px;
+  text-align: right;
+}
+
+.main {
+  padding: 0 15px;
+}
+
+.footer {
+  display: flex;
+  height: 50px;
+  line-height: 50px;
+  padding: 0 12px;
+  justify-content: space-between;
+}
+
+.footer__cell_for_back,
+.footer__cell_for_next {
+  width: 200px;
+}
+
+.weekday {
+  text-transform: capitalize;
+  display: inline-block;
+  font-size: 20px;
+  color: #666;
+}
+
+.userpic {
+  display: inline-block;
+}
+
+.userpic__img {
+  display: inline-block;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.userpic__img:before {
+  content: "\xa0";
+  font-size: 0;
+}
+
+.oracle {
+}
+
+.oracle_fulfilled {
+  pointer-events: none;
+}
+
+.oracle__cell_for_roll {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.oracle__cell_for_prophecy {
+}
+
+.oracle__button {
+  font-size: 80px;
+  white-space: nowrap;
+  text-align: center;
+  width: 120px;
+  border: 2px solid rgba(246, 183, 60, 0.5);
+  border-image: linear-gradient(#f6b73c, #4d9f0c) 30;
+  font-family: Arial;
+  color: #333;
+  line-height: 120px;
+  height: 120px;
+  outline: none;
+  background: #fff;
+  transition: transform 0.1s;
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+@media (max-width: 500px) {
+  .oracle__button {
+    font-size: 60px;
+    width: 90px;
+    border-width: 1px;
+    line-height: 90px;
+    height: 90px;
+  }
+}
+
+.oracle__button_fulfilled {
+  pointer-events: none;
+  border-color: rgba(123, 123, 123, 0.5);
+  border-image: none;
+  opacity: 1;
+}
+
+.oracle__button:focus {
+  opacity: 1;
+}
+
+.oracle__button:hover {
+  opacity: 1;
+}
+
+.oracle__button:active {
+  transform: scale(0.98);
+}
+
+.oracle__prophecy {
+  font-size: 19px;
+  text-align: justify;
+  line-height: 26px;
+}
+
+.loading {
+  font-size: 18px;
+  animation-name: blink;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  color: rgb(8, 131, 8);
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.offline {
+  font-size: 18px;
+  color: red;
+}
+
+.signup__input {
+  height: 40px;
+  width: 100%;
+  text-align: center;
+  font-size: 20px;
+}
+
+.signup__line {
+  margin-bottom: 10px;
+}
+
+.signup__line:last-child {
+  margin-bottom: 0;
+}
+
+.signup__submit {
+  float: right;
+  border: 1px solid #666;
+  background-color: rgb(252, 178, 49);
+  height: 50px;
+  line-height: 50px;
+  user-select: none;
+  font-size: 20px;
+  border-radius: 3px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.signup__submit:disabled {
+  pointer-events: none;
+  background-color: #eee;
+}
+
+.photo-attach {
+}
+
+.photo-attach__input {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.photo-attach__label {
+  font-size: 20px;
+  width: 100%;
+  display: inline-block;
+  cursor: pointer;
+  height: 50px;
+  line-height: 50px;
+  border: 1px solid #ccc;
+  padding: 0 10px;
+  border-radius: 3px;
+  text-align: center;
+}
+
+.stripe {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -100px;
+  text-align: center;
+  height: 50px;
+  line-height: 50px;
+  font-weight: bold;
+  background-color: rgba(255, 0, 0, 0.5);
+  font-family: Arial;
+  transition: bottom 0.5s;
+}
+
+.stripe_active {
+  bottom: 0;
+}
+
+.pager {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.pager__button {
+  flex-grow: 1;
+  border: 2px solid #fff;
+  background-color: rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-weight: bold;
+  transition: background-color 0.3s;
+  outline: none;
+}
+
+.pager__button:active {
+  background-color: rgba(0, 0, 0, 0.3);
+}

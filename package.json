@@ -1,15 +1,13 @@
 {
   "name": "oracle",
   "version": "0.0.0",
-  "description": "Visual prophecies for beginners",
-  "main": "index.js",
-  "scripts": {
-    "test": "test",
-    "start": "node server/index.js"
-  },
+  "description": "Visual prophecies",
   "author": "HTML Team",
   "license": "UNLICENSED",
   "dependencies": {
-    "express": "^4.16.4"
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "idb": "^3.0.2",
+    "vue": "^2.6.8"
   }
 }

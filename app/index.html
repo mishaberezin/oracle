@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oracle</title>
+    <link rel="shortcut icon" href="/img/wizard-32.png" />
+    <link rel="stylesheet" href="/index.css" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Oracle">
+    <link rel="apple-touch-icon" href="/img/wizard-192.png">
+  </head>
+  <body>
+    <div id="app">
+      <div class="layout">
+        <div class="layout__cell layout__cell_for_header">
+          <div class="header">
+            <div class="header__cell header__cell_for_weekday">
+              <weekday :date="date">
+            </div>
+            <div class="header__cell header__cell_for_status">
+              <div v-if="loading" class="loading">loading...</div>
+            </div>
+            <div class="header__cell header__cell_for_userpic">
+              <userpic :src="user.photo">
+            </div>
+          </div>
+        </div>
+        <div class="layout__cell layout__cell_for_pager">
+          <div class="pager">
+            <button class="pager__button pager__button_type_back" @click="goDayBack()">←</button>
+            <button class="pager__button pager__button_type_next" @click="goDayNext()">→</button>
+          </div>
+        </div>
+        <div class="layout__cell layout__cell_for_main">
+          <div v-if="screen === 'main'" class="main">
+            <oracle :prophecy='getCurrentProphecy()' @fulfilled='handleOracle'>
+          </div>
+          <div v-if="screen === 'auth'" class="main">
+            <form class='signup' @submit.prevent='handleSubmit' target='_blank' action='/auth' method='post'>
+              <div class="signup__line">
+                <p class="signup_message">Прежде чем начать, нужно {{ auth.newcomer ? 'зарегистрироваться' : 'авторизоваться' }}.</p>
+              </div>
+              <div class="signup__line">
+                  <label for="newcomer">Первый раз?</label>
+                  <input id="newcomer" type="checkbox" name='newcomer' v-model="auth.newcomer" />
+              </div>
+              <div class="signup__line">
+                  <input class="signup__input" required placeholder="Логин" type="text" name="login" v-model="auth.login" />
+              </div>
+              <div class="signup__line">
+                  <input class="signup__input" required placeholder="Пароль" type="text" name="password" v-model="auth.password" />
+              </div>
+              <div v-if="auth.newcomer" class="signup__line">
+                <input class="signup__input" required placeholder="Имя" type="text" name="name" v-model="auth.name" />
+              </div>
+              <div v-if="auth.newcomer" class="signup__line">
+                <photo-attach @change="handlePhotoChange" required/>
+              </div>
+              <button class="signup__submit" type="submit">Отправить</button>
+            </form>
+          </div>
+        </div>
+        <div class="stripe" :class="{ stripe_active: Boolean(alertMessage) }">
+          {{ alertMessage }}
+        </div>
+      </div>
+    </div>
+    <script src="/idb.js"></script>
+    <script src="/vue.min.js"></script>
+    <script src="/index.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js");
+      }
+    </script>
+  </body>
+</html>
