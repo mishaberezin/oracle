@@ -24,7 +24,7 @@
               <div v-if="loading" class="loading">loading...</div>
             </div>
             <div class="header__cell header__cell_for_userpic">
-              <userpic :src="user.photo">
+              <userpic :src="user.photo || auth.photo || undefined">
             </div>
           </div>
         </div>
@@ -36,45 +36,48 @@
         </div>
         <div class="layout__cell layout__cell_for_main">
           <div v-if="screen === 'main'" class="main">
-            <oracle :prophecy='getCurrentProphecy()' @fulfilled='handleOracle'>
+            <oracle :prophecy='prophecy' :index="dayIndex" @fulfilled='handleOracle'>
           </div>
           <div v-if="screen === 'auth'" class="main">
             <form class='signup' @submit.prevent='handleSubmit' target='_blank' action='/auth' method='post'>
               <div class="signup__line">
-                <p class="signup_message">Прежде чем начать, нужно {{ auth.newcomer ? 'зарегистрироваться' : 'авторизоваться' }}.</p>
+                <p class="signup__message">Сначала нужно {{ auth.newcomer ? 'зарегистрироваться' : 'авторизоваться' }}.</p>
               </div>
               <div class="signup__line">
-                  <label for="newcomer">Первый раз?</label>
-                  <input id="newcomer" type="checkbox" name='newcomer' v-model="auth.newcomer" />
+                <label class="signup__newcomer">
+                  <input class="signup__newcomer-input" type="checkbox" v-model="auth.newcomer" />
+                  <span class="signup__newcomer-button">Первый раз{{ auth.newcomer ? '!' : '?' }}</span>
+                </label>
+
+                <!-- <control role="button" type="switch" text="Первый раз?" :value="auth.newcomer"></control> -->
               </div>
               <div class="signup__line">
-                  <input class="signup__input" required placeholder="Логин" type="text" name="login" v-model="auth.login" />
+                <input class="signup__input" required placeholder="Логин" type="text" name="login" v-model="auth.login" />
               </div>
               <div class="signup__line">
-                  <input class="signup__input" required placeholder="Пароль" type="text" name="password" v-model="auth.password" />
+                <input class="signup__input" required placeholder="Пароль" type="text" name="password" v-model="auth.password" />
               </div>
               <div v-if="auth.newcomer" class="signup__line">
                 <input class="signup__input" required placeholder="Имя" type="text" name="name" v-model="auth.name" />
               </div>
               <div v-if="auth.newcomer" class="signup__line">
-                <photo-attach @change="handlePhotoChange" required/>
+                <photo-attach @change="handlePhotoChange"/>
               </div>
               <button class="signup__submit" type="submit">Отправить</button>
             </form>
           </div>
         </div>
-        <div class="stripe" :class="{ stripe_active: Boolean(alertMessage) }">
-          {{ alertMessage }}
+        <div class="stripe" :class="{ stripe_active: Boolean(offline) }">
+          Отсутствует подключение к интернету
         </div>
       </div>
     </div>
     <script src="/idb.js"></script>
     <script src="/vue.min.js"></script>
+    <script src="/outbox.js"></script>
     <script src="/index.js"></script>
     <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./sw.js");
-      }
+      navigator.serviceWorker.register("./sworker.js");
     </script>
   </body>
 </html>

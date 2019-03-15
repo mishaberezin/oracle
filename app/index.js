@@ -1,50 +1,3 @@
-// fetch + background sync
-class Outbox {
-  constructor() {
-    this.id = String(Date.now());
-    this.sw = navigator.serviceWorker.ready;
-    this.db = idb.openDb("messages", 1, upgradeDb => {
-      upgradeDb.createObjectStore("outbox", {
-        autoIncrement: true,
-        keyPath: "id"
-      });
-    });
-    this.map = {};
-
-    navigator.serviceWorker.addEventListener("message", ({ data }) => {
-      if (data.client === this.id) {
-        if (this.map[data.id]) {
-          this.map[data.id]({
-            ok: data.resp.ok,
-            status: data.resp.status,
-            json: () => Promise.resolve(data.resp.json)
-          });
-          delete this.map[data.id];
-        }
-      }
-    });
-  }
-
-  fetch(...args) {
-    return this.db
-      .then(db => {
-        const transaction = db.transaction("outbox", "readwrite");
-        return transaction.objectStore("outbox").put(args);
-      })
-      .then(id => {
-        this.sw.then(registration => {
-          registration.sync.register(`outbox_${this.id}`);
-        });
-
-        return new Promise((resolve, reject) => {
-          this.map[id] = resolve;
-        });
-      });
-  }
-}
-
-const outbox = new Outbox();
-
 Vue.component("weekday", {
   props: {
     date: {
@@ -62,6 +15,7 @@ Vue.component("weekday", {
 Vue.component("userpic", {
   props: {
     src: {
+      type: String,
       default: "/img/placeholder.png"
     }
   },
@@ -73,14 +27,15 @@ Vue.component("userpic", {
 });
 
 Vue.component("photo-attach", {
-  props: {
-    value: String,
-    required: Boolean
+  data: function() {
+    return {
+      filename: ""
+    };
   },
   template: `
     <div class="photo-attach">
       <label class="photo-attach__label">
-        <span class="photo-attach__text">Фото</span>
+        <span class="photo-attach__text">Фото {{ filename ? '[' + filename + ']' : '' }}</span>
         <input
           class="photo-attach__input"
           type="file"
@@ -88,13 +43,19 @@ Vue.component("photo-attach", {
           capture="user"
           @change="handleChange"
         >
-        <input type="hidden" :required="required" :value="value">
       </label>
     </div>
   `,
   methods: {
     handleChange({ target }) {
       const file = target.files[0];
+
+      if (!file) {
+        this.filename = "";
+        return;
+      }
+
+      this.filename = file.name;
       const reader = new FileReader();
 
       reader.onload = () => {
@@ -110,19 +71,29 @@ Vue.component("oracle", {
     prophecy: {
       type: Object,
       default: null
-    }
+    },
+    index: Number
   },
   data: function() {
-    return this.getStateByProphecy(this.prophecy);
+    return {
+      fulfilled: null,
+      roll: null,
+      text: null
+    };
+  },
+  created: function() {
+    this.renewState();
   },
   watch: {
+    index() {
+      this.renewState();
+    },
     prophecy() {
-      const state = this.getStateByProphecy(this.prophecy);
-      this.fulfilled = state.fulfilled;
-      this.roll = state.roll;
-      this.text = state.text;
+      this.renewState();
     },
     fulfilled(curr, prev) {
+      if (!curr) return;
+
       this.text = this.getRandomText();
       this.$emit("fulfilled", {
         roll: this.roll.map(item => item.emoji),
@@ -150,26 +121,26 @@ Vue.component("oracle", {
   `,
 
   methods: {
-    getStateByProphecy(prophecy) {
-      return prophecy
-        ? {
-            fulfilled: true,
-            roll: prophecy.roll.map((emoji, i) => ({
-              id: i,
-              emoji,
-              fulfilled: true
-            })),
-            text: prophecy.text
-          }
-        : {
-            fulfilled: false,
-            roll: ["🧙‍", "🧙‍", "🧙‍", "🧙‍"].map((emoji, i) => ({
-              id: i,
-              emoji,
-              fulfilled: false
-            })),
-            text: "Привет, странник! Звезды еще не открыли тебе свои тайны."
-          };
+    renewState() {
+      const prophecy = this.prophecy;
+
+      if (prophecy) {
+        this.fulfilled = true;
+        this.roll = prophecy.roll.map((emoji, i) => ({
+          id: i,
+          emoji,
+          fulfilled: true
+        }));
+        this.text = prophecy.text;
+      } else {
+        this.fulfilled = false;
+        this.roll = ["🧙‍", "🧙‍", "🧙‍", "🧙‍"].map((emoji, i) => ({
+          id: i,
+          emoji,
+          fulfilled: false
+        }));
+        this.text = "Привет, странник! Звезды еще не открыли тебе свои тайны.";
+      }
     },
 
     handleClick({ target }) {
@@ -234,6 +205,7 @@ Vue.component("oracle", {
 });
 
 const DAY = 1000 * 60 * 60 * 24;
+const outbox = createOutbox();
 
 window.APP = new Vue({
   el: "#app",
@@ -257,6 +229,9 @@ window.APP = new Vue({
   computed: {
     dayIndex: function() {
       return Math.floor(this.date.getTime() / DAY);
+    },
+    prophecy: function() {
+      return this.user.hist[this.dayIndex];
     }
   },
   created() {
@@ -295,13 +270,12 @@ window.APP = new Vue({
     },
 
     handlePhotoChange(photo) {
-      console.log("handlePhotoChange");
-
       this.auth.photo = photo;
-      this.user.photo = photo;
     },
 
     fetchUserData() {
+      this.loading = true;
+
       const userDataUrl = `/user/${this.token}`;
 
       caches.match(userDataUrl).then(resp => {
@@ -311,8 +285,6 @@ window.APP = new Vue({
           this.user = user;
         });
       });
-
-      this.loading = true;
 
       fetch(userDataUrl)
         .then(resp => {
@@ -332,7 +304,7 @@ window.APP = new Vue({
           }
         })
         .catch(error => {
-          console.log(error);
+          console.error(error);
         })
         .finally(() => {
           this.loading = false;
@@ -346,18 +318,14 @@ window.APP = new Vue({
 
       this.loading = true;
 
-      outbox
-        .fetch("/auth", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(this.auth)
-        })
+      outbox("/auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(this.auth)
+      })
         .then(resp => {
-          console.log("🔥");
-          console.log(resp);
-
           if (resp.ok) {
             return resp.json();
           } else if (resp.status === 401) {
@@ -374,10 +342,11 @@ window.APP = new Vue({
 
           if (!this.auth.newcomer) {
             this.fetchUserData();
+            this.screen = "main";
           }
         })
         .catch(error => {
-          // retry();
+          console.error(error);
         })
         .finally(() => {
           this.loading = false;
